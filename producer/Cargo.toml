@@ -1,0 +1,8 @@
+[package]
+name = "producer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+kafka = { version = "0.10.0",  default-features = false, features = ["gzip"] }
+polars = { version = "0.46.0", features = ["lazy", "parquet", "rows", "json", "dtype-decimal"] }
