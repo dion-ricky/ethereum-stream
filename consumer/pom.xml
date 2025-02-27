@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.dionricky</groupId>
-    <artifactId>flink-consumer</artifactId>
+    <artifactId>consumer</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
