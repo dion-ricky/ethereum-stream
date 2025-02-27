@@ -18,7 +18,8 @@ public class AggTransactions {
                 "    from_address    STRING,\n" +
                 "    to_address      STRING,\n" +
                 "    `value`         DOUBLE,\n" +
-                "    block_timestamp TIMESTAMP(3)\n" +
+                "    block_timestamp TIMESTAMP(3),\n" +
+                "    WATERMARK FOR block_timestamp AS block_timestamp - INTERVAL '5' SECOND\n" +
                 ") WITH (\n" +
                 "    'connector' = 'kafka',\n" +
                 "    'topic'     = 'eth-transactions',\n" +
