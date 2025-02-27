@@ -1,1 +1,1 @@
-CREATE DATABASE druid OWNER ethereum;
+CREATE DATABASE druid;
