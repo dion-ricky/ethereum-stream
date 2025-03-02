@@ -49,6 +49,8 @@ fn main() {
     let path = &args[1];
     let topic = &args[2];
 
+    println!("Reading data from {path} and pushing to {topic}.");
+
     let mut file = std::fs::File::open(path).unwrap();
 
     let mut df = ParquetReader::new(&mut file).finish().unwrap();

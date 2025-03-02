@@ -2,7 +2,7 @@ services:
   jobmanager:
     build: .
     ports:
-      - "8081:8081"
+      - "8080:8081"
     command: jobmanager
     expose:
       - "6123"
@@ -44,12 +44,18 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
     volumes:
       - kafka:/var/lib/kafka/data
+    healthcheck:
+      test: /opt/kafka/bin/kafka-cluster.sh cluster-id --bootstrap-server kafka:9092 || exit 1
+      interval: 30s
+      timeout: 60s
+      retries: 10
 
   kafka-init:
     image: apache/kafka:3.9.0
     command: /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --topic eth-transactions
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
 
   postgres:
     image: postgres:15
@@ -65,15 +71,21 @@ services:
 
   datagen:
     build: producer/
+    command: producer /usr/src/producer/data/ethereum_transactions-000000000001 eth-transactions
+    volumes:
+      - ./data:/usr/src/producer/data
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+      kafka-init:
+        condition: service_started
     profiles:
       - datagen
 
   zookeeper:
     image: zookeeper:3.5.10
-    # ports:
-    #   - "2181:2181"
+    ports:
+      - "2181:2181"
     environment:
       - ZOO_MY_ID=1
 
@@ -85,10 +97,12 @@ services:
     depends_on:
       - zookeeper
       - postgres
-    # ports:
-    #   - "8081:8081"
+    ports:
+      - "8081:8081"
     command:
       - coordinator
+    env_file:
+      - .env
 
   broker:
     image: apache/druid:32.0.0
@@ -98,10 +112,12 @@ services:
       - zookeeper
       - postgres
       - coordinator
-    # ports:
-    #   - "8082:8082"
+    ports:
+      - "8082:8082"
     command:
       - broker
+    env_file:
+      - .env
 
   historical:
     image: apache/druid:32.0.0
@@ -112,10 +128,12 @@ services:
       - zookeeper
       - postgres
       - coordinator
-    # ports:
-    #   - "8083:8083"
+    ports:
+      - "8083:8083"
     command:
       - historical
+    env_file:
+      - .env
 
   middlemanager:
     image: apache/druid:32.0.0
@@ -126,11 +144,13 @@ services:
       - zookeeper
       - postgres
       - coordinator
-    # ports:
-    #   - "8091:8091"
-    #   - "8100-8105:8100-8105"
+    ports:
+      - "8091:8091"
+      - "8100-8105:8100-8105"
     command:
       - middleManager
+    env_file:
+      - .env
 
   router:
     image: apache/druid:32.0.0
@@ -144,6 +164,8 @@ services:
       - "8888:8888"
     command:
       - router
+    env_file:
+      - .env
 
 volumes:
   kafka:
